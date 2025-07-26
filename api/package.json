@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.850.0",
+    "@neondatabase/serverless": "^1.0.1",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -7,7 +9,6 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
-    "nanoid": "^5.1.5",
-    "sqlite3": "^5.1.7"
+    "nanoid": "^5.1.5"
   }
 }

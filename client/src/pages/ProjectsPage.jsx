@@ -37,7 +37,7 @@ export default function ProjectsPage() {
 							<h1 className="line-clamp-2">{project.title}</h1>
 							<img
 								className="rounded-2xl shadow-2xl opacity-75 hover:opacity-100 duration-200 ease-in"
-								src={"http://localhost:4000/" + project.coverImage}
+								src={project.coverImage}
 								alt={project.title}
 								style={{
 									height: 250,

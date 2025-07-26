@@ -4,6 +4,9 @@ import { UserContext } from "../UserContext";
 
 import UserProjectEditorPage from "./userControl/UserProjectEditorPage";
 
+import { ThreeDObjectBlock } from "../components/ThreeDObjectBlock";
+
+import { BlockNoteSchema, defaultBlockSpecs } from "@blocknote/core";
 import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/core/fonts/inter.css";
@@ -12,10 +15,20 @@ import axios from "axios";
 
 export default function ProjectEditorPage() {
 	const { id } = useParams();
-	const editor = useCreateBlockNote();
 	const { ready, user, setUser } = useContext(UserContext);
 	const [title, setTitle] = useState("");
 	const [coverImage, setCoverImage] = useState("");
+
+	const schema = BlockNoteSchema.create({
+		blockSpecs: {
+			...defaultBlockSpecs,
+			threeDObject: ThreeDObjectBlock,
+		},
+	});
+
+	const editor = useCreateBlockNote({
+		schema,
+	});
 
 	useEffect(() => {
 		axios.get(`/projects/${id}`).then((res) => {
@@ -33,7 +46,7 @@ export default function ProjectEditorPage() {
 		<>
 			<img
 				className="shadow-xl absolute top-0 left-0 w-full h-80 object-cover"
-				src={"http://localhost:4000/" + coverImage}
+				src={coverImage}
 			/>
 			<div className="mt-64 w-full flex justify-center">
 				<div className="mx-8 w-full md:w-3xl lg:w-5xl">

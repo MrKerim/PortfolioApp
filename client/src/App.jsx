@@ -10,6 +10,8 @@ import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import LoginPage from "./pages/LoginPage";
 
+import Test from "./pages/test";
+
 import { Toaster } from "sonner";
 import axios from "axios";
 
@@ -32,6 +34,9 @@ function App() {
 						<Route path="/contact" element={<ContactPage />} />
 
 						<Route path="/login" element={<LoginPage />} />
+
+						{/*Testing */}
+						<Route path="/three" element={<Test />} />
 					</Route>
 				</Routes>
 			</UserContextProvider>

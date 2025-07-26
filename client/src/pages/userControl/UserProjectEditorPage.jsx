@@ -1,12 +1,15 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useOutletContext, useNavigate } from "react-router-dom";
-
+import { BlockNoteSchema, defaultBlockSpecs } from "@blocknote/core";
 import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteEditor } from "@blocknote/core";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/mantine/style.css";
 import axios from "axios";
+
+import { ThreeDObjectBlock } from "../../components/ThreeDObjectBlock";
+import { CustomSlashMenu } from "../../editor/CustomSlashMenu";
 
 import { toast } from "sonner";
 
@@ -28,14 +31,17 @@ export default function UserProjectEditorPage() {
 		setDeleteProjectHandler,
 	} = useOutletContext();
 
-	const editorRef = useRef(null);
-	if (!editorRef.current) {
-		editorRef.current = BlockNoteEditor.create({
-			uploadFile: uploadPhotoToEditor,
-		});
-	}
+	const schema = BlockNoteSchema.create({
+		blockSpecs: {
+			...defaultBlockSpecs,
+			threeDObject: ThreeDObjectBlock,
+		},
+	});
 
-	const editor = editorRef.current;
+	const editor = useCreateBlockNote({
+		schema,
+		uploadFile: uploadPhotoToEditor,
+	});
 
 	useEffect(() => {
 		setSaveProjectHandler(handleSaveProject);
@@ -159,7 +165,7 @@ export default function UserProjectEditorPage() {
 					"Content-Type": "multipart/form-data",
 				},
 			});
-			return "http://localhost:4000/" + response.data;
+			return response.data;
 		} catch (error) {
 			console.error("Error uploading image:", error);
 			throw error;
@@ -188,7 +194,7 @@ export default function UserProjectEditorPage() {
 		<>
 			<img
 				className="absolute top-0 left-0 shadow-xl w-full h-80 object-cover"
-				src={"http://localhost:4000/" + coverImage}
+				src={coverImage}
 			/>
 
 			<div className="mt-64 w-full flex justify-center">
@@ -226,7 +232,14 @@ export default function UserProjectEditorPage() {
 						contentEditable={editMode}
 						className="ml-14 mb-4 lg:text-5xl text-4xl font-bold focus:outline-0 "
 					></h1>
-					<BlockNoteView editor={editor} theme={"light"} editable={editMode} />
+					<BlockNoteView
+						editor={editor}
+						theme={"light"}
+						editable={editMode}
+						slashMenu={false}
+					>
+						<CustomSlashMenu editor={editor} />
+					</BlockNoteView>
 				</div>
 			</div>
 		</>

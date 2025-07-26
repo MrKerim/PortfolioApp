@@ -29,7 +29,7 @@ export default function IndexPage() {
 		});
 
 		axios.get("/homePageProfile").then((res) => {
-			setSrcImage("http://localhost:4000" + res.data.filename);
+			setSrcImage(res.data.filename);
 			setBlobPath(res.data.blobPath);
 			setZoom(res.data.zoom);
 			setCrop(JSON.parse(res.data.crop));

@@ -40,12 +40,14 @@ export default function UserIndexPage() {
 
 		axios.get("/homePageProfile").then((res) => {
 			setPreviewImg(null);
-			setSrcImage("http://localhost:4000" + res.data.filename);
+			//setSrcImage("http://localhost:4000" + res.data.filename);
+			setSrcImage(res.data.filename);
+
 			setBlobPath(res.data.blobPath);
 			setZoom(res.data.zoom);
 			setCrop(JSON.parse(res.data.crop));
 
-			fetch("http://localhost:4000" + res.data.filename)
+			fetch(res.data.filename)
 				.then((response) => response.blob())
 				.then((blob) => {
 					const file = new File([blob], "profile", { type: blob.type });
