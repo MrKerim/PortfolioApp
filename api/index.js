@@ -26,7 +26,7 @@ app.use(cookieParser());
 app.use(
 	cors({
 		credentials: true,
-		origin: "http://localhost:5173",
+		origin: "https://portfolio-app-yunus.vercel.app",
 	})
 );
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
