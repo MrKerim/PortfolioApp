@@ -31,6 +31,8 @@ app.use(
 );
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+console.log("backend log");
+
 // Upload to S3 middleware
 async function uploadToS3(path, originalFilename, mimetype) {
 	const client = new S3Client({
