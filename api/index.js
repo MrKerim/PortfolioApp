@@ -8,7 +8,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const multer = require("multer");
-const { nanoid } = require("nanoid");
+//const { nanoid } = require("nanoid");
 //import { nanoid } from "nanoid";
 
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
@@ -99,6 +99,7 @@ async function getRandomImageFromUnsplash(query) {
 }
 
 async function generateUniqueProjectId(sql) {
+	const { nanoid } = await import("nanoid");
 	while (true) {
 		const id = nanoid(6);
 		const result = await sql`SELECT id FROM projects WHERE id = ${id}`;
