@@ -8,8 +8,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const multer = require("multer");
-//const { nanoid } = require("nanoid");
-import { nanoid } from "nanoid";
+const { nanoid } = require("nanoid");
+//import { nanoid } from "nanoid";
 
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const fs = require("fs");
@@ -27,7 +27,7 @@ app.use(cookieParser());
 app.use(
 	cors({
 		credentials: true,
-		origin: "https://portfolio-app-yunus.vercel.app",
+		origin: "http://localhost:5173",
 	})
 );
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
