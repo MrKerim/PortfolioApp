@@ -8,7 +8,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const multer = require("multer");
-const { nanoid } = require("nanoid");
+//const { nanoid } = require("nanoid");
+import { nanoid } from "nanoid";
 
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const fs = require("fs");
