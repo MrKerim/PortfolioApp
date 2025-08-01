@@ -8,6 +8,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const multer = require("multer");
+const sharp = require("sharp");
 //const { nanoid } = require("nanoid");
 //import { nanoid } from "nanoid";
 
@@ -286,6 +287,7 @@ app.get("/api/homePageProfile", async (req, res) => {
 
 		const profileTableContent = {
 			filename: row.filename,
+			lowresfilename: row.lowresfilename,
 			blobPath: row.blobpath,
 			crop: row.crop,
 			zoom: row.zoom,
@@ -401,6 +403,27 @@ app.post("/api/homePageProfile", upload.single("image"), (req, res) => {
 });
 */
 
+async function createLowResImage(inputPath, originalname, mimetype) {
+	const ext = path.extname(originalname) || ".jpg";
+	const format = mimetype.includes("png") ? "png" : "jpeg";
+	const outputMimetype = format === "png" ? "image/png" : "image/jpeg";
+
+	const outputName = `lowres-${Date.now()}${ext}`;
+	const outputPath = path.join(path.dirname(inputPath), outputName);
+
+	const meta = await sharp(inputPath).metadata();
+	const targetWidth = Math.max(Math.round((meta.width || 1000) * 0.04), 10);
+	const targetHeight = Math.max(Math.round((meta.height || 1000) * 0.04), 10);
+
+	await sharp(inputPath)
+		.resize(targetWidth, targetHeight, { fit: "fill" })
+		.toFormat(format, { quality: 60 })
+		.toFile(outputPath);
+
+	const fileUrl = await uploadToS3(outputPath, outputName, outputMimetype);
+	return fileUrl;
+}
+
 app.post("/api/homePageProfile", upload.single("image"), async (req, res) => {
 	const { token } = req.cookies;
 
@@ -418,9 +441,15 @@ app.post("/api/homePageProfile", upload.single("image"), async (req, res) => {
 
 			const { path, originalname, mimetype } = req.file;
 			const fileUrl = await uploadToS3(path, originalname, mimetype);
+			const lowresfilename = await createLowResImage(
+				path,
+				originalname,
+				mimetype
+			);
 
 			const initialContentProfileTable = {
 				filename: fileUrl,
+				lowresfilename: lowresfilename,
 				blobPath: req.body.blobPath,
 				crop: req.body.crop,
 				zoom: req.body.zoom,
@@ -439,6 +468,7 @@ app.post("/api/homePageProfile", upload.single("image"), async (req, res) => {
 				await sql`
 					UPDATE profilePicture
 					SET filename = ${initialContentProfileTable.filename},
+						lowresfilename = ${initialContentProfileTable.lowresfilename},
 						blobPath = ${initialContentProfileTable.blobPath},
 						crop = ${cropString},
 						zoom = ${initialContentProfileTable.zoom}
@@ -453,7 +483,8 @@ app.post("/api/homePageProfile", upload.single("image"), async (req, res) => {
 						${initialContentProfileTable.filename},
 						${initialContentProfileTable.blobPath},
 						${cropString},
-						${initialContentProfileTable.zoom}
+						${initialContentProfileTable.zoom},
+						${initialContentProfileTable.lowresfilename}
 					)
 				`;
 				console.log("profilePicture inserted.");
