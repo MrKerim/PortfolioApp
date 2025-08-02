@@ -1,10 +1,22 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import axios from "axios";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+
+function getDeviceId() {
+	let id = localStorage.getItem("deviceId");
+	if (!id) {
+		id = crypto.randomUUID();
+		localStorage.setItem("deviceId", id);
+	}
+	return id;
+}
 
 export default function Layout() {
+	const location = useLocation();
+
 	const [editMode, setEditMode] = useState(false);
 	const [isProjectPublished, setIsProjectPublished] = useState(null);
 
@@ -17,6 +29,17 @@ export default function Layout() {
 	const saveProjectRef = useRef(null);
 
 	const deleteProjectRef = useRef(null);
+
+	useEffect(() => {
+		const deviceId = getDeviceId();
+		axios
+			.post("/track", {
+				deviceId,
+				path: location.pathname,
+				timestamp: new Date().toISOString(),
+			})
+			.catch(() => {});
+	}, [location.pathname]);
 
 	function handleToggleEditMode() {
 		setEditMode((prev) => !prev);

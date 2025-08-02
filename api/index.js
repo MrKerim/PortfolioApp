@@ -936,6 +936,42 @@ app.put("/api/settings", async (req, res) => {
 	});
 });
 
+app.post("/api/track", async (req, res) => {
+	console.log("called track");
+	const { token } = req.cookies;
+
+	if (token) {
+		jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+			if (err) return res.status(500).json({ message: "Internal error" });
+
+			return;
+		});
+	}
+
+	try {
+		console.log("user");
+		const sql = neon(process.env.DATABASE_URL);
+
+		const { deviceId, path, timestamp } = req.body;
+
+		if (!deviceId || !path) {
+			return res.status(400).json({ error: "Missing required fields" });
+		}
+
+		// Insert visit record
+		await sql`
+      INSERT INTO analytics (device_id, path, timestamp)
+      VALUES (${deviceId}, ${path}, ${timestamp || new Date().toISOString()})
+    `;
+		// sql
+
+		return res.status(200);
+	} catch (err) {
+		console.error("Server error:", err);
+		return res.status(500).json({ message: "ServerError", error: err.message });
+	}
+});
+
 /*
  *  DEVELOPMENT
  *
