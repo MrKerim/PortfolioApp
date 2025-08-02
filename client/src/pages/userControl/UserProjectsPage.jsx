@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useOutletContext, useNavigate } from "react-router-dom";
 
+import ProjectsPageImage from "../../components/ProjectsPageImage";
+
 import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/core/fonts/inter.css";
@@ -62,15 +64,10 @@ export default function UserProjectsPage() {
 							className="flex flex-col gap-4 m-6 cursor-pointer p-6 justify-between glass rounded-2xl lg:text-2xl text-lg font-bold duration-200 ease-in text-[#606060] hover:text-black"
 						>
 							<h1 className="line-clamp-2">{project.title}</h1>
-							<img
-								className="rounded-2xl shadow-2xl opacity-75 hover:opacity-100 duration-200 ease-in"
-								src={project.coverImage}
+							<ProjectsPageImage
+								lowResSrc={project.lowrescoverimage}
+								highResSrc={project.coverImage}
 								alt={project.title}
-								style={{
-									height: 250,
-									width: "auto", // optional, keep aspect ratio
-									objectFit: "cover", // crop to fill height
-								}}
 							/>
 						</Link>
 					))}
@@ -97,15 +94,10 @@ export default function UserProjectsPage() {
 							className="flex flex-col gap-4 m-6 cursor-pointer p-6 justify-between glass rounded-2xl lg:text-2xl text-lg font-bold duration-200 ease-in text-[#606060] hover:text-black"
 						>
 							<h1 className="line-clamp-2">{project.title}</h1>
-							<img
-								className="rounded-2xl shadow-2xl opacity-75 hover:opacity-100 duration-200 ease-in"
-								src={project.coverImage}
+							<ProjectsPageImage
+								lowResSrc={project.lowrescoverimage}
+								highResSrc={project.coverImage}
 								alt={project.title}
-								style={{
-									height: 250,
-									width: "auto", // optional, keep aspect ratio
-									objectFit: "cover", // crop to fill height
-								}}
 							/>
 						</Link>
 					))}

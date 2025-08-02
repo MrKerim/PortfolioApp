@@ -96,7 +96,7 @@ async function getRandomImageFromUnsplash(query) {
 	}
 
 	const data = await response.json();
-	return data.urls.regular;
+	return { regular: data.urls.regular, thumb: data.urls.thumb };
 }
 
 async function generateUniqueProjectId(sql) {
@@ -478,7 +478,7 @@ app.post("/api/homePageProfile", upload.single("image"), async (req, res) => {
 			} else {
 				// Insert new row
 				await sql`
-					INSERT INTO profilePicture (filename, blobPath, crop, zoom)
+					INSERT INTO profilePicture (filename, blobPath, crop, zoom,lowresfilename)
 					VALUES (
 						${initialContentProfileTable.filename},
 						${initialContentProfileTable.blobPath},
@@ -607,7 +607,7 @@ app.get("/api/projects", async (req, res) => {
 		const sql = neon(process.env.DATABASE_URL);
 
 		const result = await sql`
-			SELECT id, title, coverimage AS "coverImage", published 
+			SELECT id, title, coverimage AS "coverImage", published , lowrescoverimage
 			FROM projects 
 			WHERE published = TRUE
 		`;
@@ -631,7 +631,7 @@ app.get("/api/projectsDraft", async (req, res) => {
 			const sql = neon(process.env.DATABASE_URL);
 
 			const rows =
-				await sql`SELECT id, title, coverimage AS "coverImage", published FROM projects WHERE published = FALSE`;
+				await sql`SELECT id, title, coverimage AS "coverImage", published,lowrescoverimage FROM projects WHERE published = FALSE`;
 
 			res.status(200).json(rows);
 		} catch (err) {
@@ -653,10 +653,12 @@ app.post("/api/projects", async (req, res) => {
 
 			const id = await generateUniqueProjectId(sql);
 
-			const coverImage = await getRandomImageFromUnsplash("projects");
+			const unsplashImage = await getRandomImageFromUnsplash("projects");
+			const coverImage = unsplashImage.regular;
+			const lowrescoverImage = unsplashImage.thumb;
 
 			await sql`
-				INSERT INTO projects (id, title, coverimage, content, published)
+				INSERT INTO projects (id, title, coverimage, content, published,lowrescoverimage)
 				VALUES (
 					${id},
 					'title',
@@ -674,7 +676,8 @@ app.post("/api/projects", async (req, res) => {
 							children: [],
 						},
 					])},
-					false
+					false,
+					${lowrescoverImage}
 				)
 			`;
 
@@ -693,7 +696,7 @@ app.get("/api/projects/:id", async (req, res) => {
 		const sql = neon(process.env.DATABASE_URL);
 
 		const rows =
-			await sql`SELECT id, title, coverimage AS "coverImage", content, published FROM projects WHERE id = ${id}`;
+			await sql`SELECT id, title, coverimage AS "coverImage", content, published, lowrescoverimage FROM projects WHERE id = ${id}`;
 
 		if (rows.length === 0) {
 			return res.status(404).json({ error: "Project not found" });
@@ -755,8 +758,13 @@ app.post("/api/upload", upload.single("image"), (req, res) => {
 		//const fileUrl = `uploads/${req.file.filename}`;
 		const { path, originalname, mimetype } = req.file;
 		const fileUrl = await uploadToS3(path, originalname, mimetype);
+		const lowresfilename = await createLowResImage(
+			path,
+			originalname,
+			mimetype
+		);
 
-		return res.send(fileUrl);
+		return res.send({ fileUrl: fileUrl, lowResFileUrl: lowresfilename });
 	});
 });
 
@@ -794,14 +802,15 @@ app.put("/api/projects/:id", async (req, res) => {
 		if (err) return res.status(500).json({ message: "Internal error" });
 
 		const { id } = req.params;
-		const { title, coverImage, content } = req.body;
+		const { title, coverImage, content, lowrescoverimage } = req.body;
 
 		try {
 			const sql = neon(process.env.DATABASE_URL);
 
 			const result = await sql`
 				UPDATE projects
-				SET title = ${title}, coverimage = ${coverImage}, content = ${content}
+				SET title = ${title}, coverimage = ${coverImage}, content = ${content},
+				lowrescoverimage = ${lowrescoverimage}
 				WHERE id = ${id}
 			`;
 
@@ -879,6 +888,50 @@ app.delete("/api/projects/:id", async (req, res) => {
 		} catch (error) {
 			console.error("Error deleting project:", error.message);
 			res.status(500).json({ error: "Failed to delete project" });
+		}
+	});
+});
+
+app.put("/api/settings", async (req, res) => {
+	const { token } = req.cookies;
+
+	if (!token) return res.json(null);
+
+	jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+		if (err) return res.status(500).json({ message: "Internal error" });
+
+		try {
+			const sql = neon(process.env.DATABASE_URL);
+			const { email, password } = req.body;
+
+			if (!email || !password) {
+				return res
+					.status(400)
+					.json({ error: "Email and password are required." });
+			}
+
+			const hashedPassword = bcrypt.hashSync(password, bcryptSalt);
+
+			const users = await sql`SELECT email FROM users LIMIT 1`;
+
+			if (users.length === 0) {
+				return res.status(404).json({ error: "No user found to update." });
+			}
+
+			const userEmail = users[0].email;
+
+			await sql`
+			UPDATE users
+			SET email = ${email}, password = ${hashedPassword}
+			WHERE email = ${userEmail}
+		`;
+
+			return res.status(200).json({ message: "User updated successfully." });
+		} catch (err) {
+			console.error("Server error:", err);
+			return res
+				.status(500)
+				.json({ message: "ServerError", error: err.message });
 		}
 	});
 });

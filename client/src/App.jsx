@@ -9,6 +9,7 @@ import ProjectsPage from "./pages/ProjectsPage";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import LoginPage from "./pages/LoginPage";
+import UserSettingsPage from "./pages/userControl/UserSettingsPage";
 
 import { Toaster } from "sonner";
 import axios from "axios";
@@ -32,6 +33,7 @@ function App() {
 						<Route path="/contact" element={<ContactPage />} />
 
 						<Route path="/login" element={<LoginPage />} />
+						<Route path="/settings" element={<UserSettingsPage />} />
 					</Route>
 				</Routes>
 			</UserContextProvider>

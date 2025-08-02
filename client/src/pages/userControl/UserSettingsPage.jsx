@@ -1,54 +1,44 @@
 import { useContext, useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import axios from "axios";
-import { UserContext } from "../UserContext.jsx";
+import { UserContext } from "../../UserContext";
+import { toast } from "sonner";
 
-export default function LoginPage() {
+export default function UserSettingsPage() {
 	const [pendingRequest, setPendingRequest] = useState(false);
 
 	const [togglePasswordVisibility, setTogglePasswordVisibility] =
 		useState(false);
 
-	const [emailNotFound, setEmailNotFound] = useState(false);
-	const [wrongPassword, setWrongPassword] = useState(false);
-
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
-	const [redirectToHome, setRedirectToHome] = useState(false);
 
 	const { user, setUser } = useContext(UserContext);
 
-	if (user) {
+	if (!user) {
 		return <Navigate to={"/"} />;
 	}
 
-	async function handleLoginRequest(ev) {
-		ev.preventDefault();
-		setPendingRequest(true);
-		try {
-			const response = await axios.post("/login", {
-				email,
-				password,
-			});
-			setUser(response.data);
-			setRedirectToHome("/");
-		} catch (error) {
-			if (error.response.status == 404) setEmailNotFound(true);
-			else if (error.response.status == 401) {
-				setWrongPassword(true);
-				setEmailNotFound(false);
-			} else {
-				alert(
-					"Serverlarımız bir sorun ile karşılaştı. Yaşanan aksaklık için üzgünüz."
-				);
-			}
-		} finally {
+	async function handleSaveSettings() {
+		const data = { email: email, password: password };
+
+		const promise = axios.put("/settings", data, {
+			headers: { "Content-Type": "application/json" },
+		});
+
+		toast.promise(promise, {
+			loading: "Kaydediliyor...",
+			success: "Başarıyla kaydedildi!",
+			error: (err) => {
+				if (err.response?.data?.message) {
+					return `Hata: ${err.response.data.message}`;
+				}
+				return "Kaydetme sırasında bir hata oluştu.";
+			},
+		});
+		promise.then(() => {
 			setPendingRequest(false);
-		}
-	}
-
-	if (redirectToHome) {
-		return <Navigate to={"/"} />;
+		});
 	}
 
 	return (
@@ -58,22 +48,22 @@ export default function LoginPage() {
 			)}
 			<div className={pendingRequest ? "pointer-events-none" : undefined}>
 				<div className="flex justify-center font-normal text-4xl text-gray-400 mt-10">
-					<Link to={"/login"}>
-						<h1 className=" pr-5 pt-2 pb-2 text-black">Giriş Yap</h1>
-					</Link>
+					<h1 className=" pr-5 pt-2 pb-2 text-black">
+						Bilgilerinizi Değiştirin
+					</h1>
 				</div>
+				<div className="flex justify-center font-normal text-sm text-gray-400 mt-4">
+					<h1 className=" pr-5 max-w-lg ">
+						Kaydete tıkladıktan sonra bilgileriniz kaydedilecek, unutmayın bu
+						işlemi geri alamazsınız.Ama bilgilerinize sahip olduğunuz sürece
+						değiştirebilirsiniz.
+					</h1>
+				</div>
+
 				<div className=" w-full flex justify-center">
-					<form
-						onSubmit={(ev) => {
-							handleLoginRequest(ev);
-						}}
-						className="flex flex-col text-xl mt-10 w-full mr-10 ml-10 md:max-w-xl"
-					>
+					<form className="flex flex-col text-xl mt-10 w-full mr-10 ml-10 md:max-w-xl">
 						<input
-							className={
-								"border-b-2 border-gray-500 placeholder-black focus:outline-none pb-4" +
-								(emailNotFound ? " border-red-500 " : "")
-							}
+							className="border-b-2 border-gray-500 placeholder-black focus:outline-none pb-4"
 							type="email"
 							placeholder="E-posta Adresi"
 							value={email}
@@ -82,15 +72,7 @@ export default function LoginPage() {
 								setEmailNotFound(false);
 							}}
 						/>
-						{emailNotFound && (
-							<h1 className="text-red-500">Eşleşen bir hesap bulunamadı.</h1>
-						)}
-						<div
-							className={
-								"flex justify-between border-b-2 border-gray-500  pb-4 mt-10" +
-								(wrongPassword ? " border-red-500 " : "")
-							}
-						>
+						<div className="flex justify-between border-b-2 border-gray-500  pb-4 mt-10">
 							<input
 								className="placeholder-black focus:outline-none w-full"
 								type={togglePasswordVisibility ? "text" : "password"}
@@ -133,17 +115,18 @@ export default function LoginPage() {
 								)}
 							</div>
 						</div>
-						{wrongPassword && (
-							<h1 className="text-red-500">Şifrenizi kontrol ediniz.</h1>
-						)}
 
 						<button
+							onClick={(ev) => {
+								ev.preventDefault();
+								handleSaveSettings();
+							}}
 							className={
 								"cursor-pointer rounded-full p-6 mt-10 text-base text-white " +
 								(pendingRequest ? "bg-gray-500" : "bg-black")
 							}
 						>
-							Giriş Yap
+							Kaydet
 						</button>
 					</form>
 				</div>

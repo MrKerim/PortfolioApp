@@ -21,7 +21,9 @@ export default function UserProjectEditorPage() {
 
 	const { id } = useParams();
 
-	const [coverImage, setCoverImage] = useState("");
+	const [coverImage, setCoverImage] = useState(null);
+	const [lowResCoverImage, setLowResCoverImage] = useState(null);
+
 	const {
 		editMode,
 		setIsProjectPublished,
@@ -56,7 +58,15 @@ export default function UserProjectEditorPage() {
 			//setTitle(res.data.title);
 			if (titleRef) titleRef.current.textContent = res.data.title;
 
-			setCoverImage(res.data.coverImage);
+			//setCoverImage(res.data.coverImage);
+			setCoverImage(res.data.lowrescoverimage);
+			setLowResCoverImage(res.data.lowrescoverimage);
+
+			const img = new Image();
+			img.src = res.data.coverImage;
+			img.onload = () => {
+				setCoverImage(res.data.coverImage);
+			};
 
 			editor.replaceBlocks(editor.document, res.data.content);
 			setIsProjectPublished(res.data.published);
@@ -110,6 +120,7 @@ export default function UserProjectEditorPage() {
 			title: titleRef.current.textContent,
 			coverImage: coverImage,
 			content: JSON.stringify(editor.document),
+			lowrescoverimage: lowResCoverImage,
 		};
 
 		const promise = axios.put(`/projects/${id}`, data);
@@ -145,7 +156,14 @@ export default function UserProjectEditorPage() {
 					},
 				})
 				.then((response) => {
-					setCoverImage(response.data);
+					setCoverImage(response.data.lowResFileUrl);
+					setLowResCoverImage(response.data.lowResFileUrl);
+
+					const img = new Image();
+					img.src = response.data.fileUrl;
+					img.onload = () => {
+						setCoverImage(response.data.fileUrl);
+					};
 				}),
 			{
 				loading: "Fotoğraf gönderiliyor...",
@@ -165,7 +183,7 @@ export default function UserProjectEditorPage() {
 					"Content-Type": "multipart/form-data",
 				},
 			});
-			return response.data;
+			return response.data.fileUrl;
 		} catch (error) {
 			console.error("Error uploading image:", error);
 			throw error;
