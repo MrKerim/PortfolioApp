@@ -8,7 +8,9 @@
 	</head>
 	<body>
 		<div id="initial-loader">
-			<div class="initial-spinner"></div>
+			<div class="initial-spinner">
+				<img src="Logo.svg" alt="Logo" />
+			</div>
 		</div>
 		<div id="root"></div>
 		<style>
@@ -22,16 +24,19 @@
 				z-index: 9999;
 			}
 			.initial-spinner {
-				width: 40px;
-				height: 40px;
-				border: 3px solid #ccc;
-				border-top: 3px solid #333;
-				border-radius: 50%;
-				animation: initial-spin 0.8s linear infinite;
+				width: 120px;
+				height: 120px;
+				animation: initial-loader 0.8s linear infinite;
 			}
-			@keyframes initial-spin {
-				to {
-					transform: rotate(360deg);
+			@keyframes initial-loader {
+				0% {
+					opacity: 1;
+				}
+				50% {
+					opacity: 0.5;
+				}
+				100% {
+					opacity: 1;
 				}
 			}
 		</style>
