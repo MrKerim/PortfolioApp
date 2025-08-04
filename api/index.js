@@ -712,6 +712,64 @@ app.get("/api/projects/:id", async (req, res) => {
 	}
 });
 
+app.get("/api/projectlikes/:id", async (req, res) => {
+	const { id } = req.params;
+
+	try {
+		const sql = neon(process.env.DATABASE_URL);
+
+		const rows =
+			await sql`SELECT device_id FROM projectlikes WHERE project_id = ${id}`;
+
+		res.status(200).json(rows);
+	} catch (err) {
+		console.error("Error fetching project:", err.message);
+		res.status(500).json({ error: "Failed to fetch project" });
+	}
+});
+app.put("/api/projectlikes/:id", async (req, res) => {
+	const { id } = req.params;
+	const { device_id } = req.body;
+
+	if (!device_id) {
+		return res.status(400).json({ error: "device_id is required" });
+	}
+
+	try {
+		const sql = neon(process.env.DATABASE_URL);
+
+		// Check if the like already exists
+		const existing = await sql`
+		SELECT * FROM projectlikes
+		WHERE project_id = ${id} AND device_id = ${device_id}
+	  `;
+
+		if (existing.length > 0) {
+			// If exists → delete the like
+			await sql`
+		  DELETE FROM projectlikes
+		  WHERE project_id = ${id} AND device_id = ${device_id}
+		`;
+		} else {
+			// If not exists → insert a new like with timestamp
+			const now = new Date().toISOString();
+			await sql`
+		  INSERT INTO projectlikes (project_id, device_id, timestamp)
+		  VALUES (${id}, ${device_id}, ${now})
+		`;
+		}
+
+		const rows = await sql`
+		SELECT device_id FROM projectlikes WHERE project_id = ${id}
+	  `;
+
+		return res.status(200).json(rows);
+	} catch (err) {
+		console.error("Error toggling like:", err.message);
+		return res.status(500).json({ error: "Failed to toggle like" });
+	}
+});
+
 app.put("/api/moveProject/:id", async (req, res) => {
 	const { token } = req.cookies;
 	if (!token) return res.json(null);
