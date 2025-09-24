@@ -40,6 +40,10 @@ The project consists of three main parts:
    - Mirrors the web app functionality
    - Includes reusable components and custom text editor logic
 
+## Architecture
+
+![Architecture](.github/PappArchitecture.webp)
+
 ---
 
 ## Features
@@ -84,7 +88,3 @@ The project consists of three main parts:
 - Replicates customization logic where possible.
 
 ---
-
-## Architecture
-
-![Architecture](.github/PappArchitecture.webp)
